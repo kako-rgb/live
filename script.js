@@ -1,3 +1,151 @@
+// Helper function to create video player
+function createVideoPlayer(videoPath) {
+  // Check if a player already exists and remove it
+  const existingPlayer = document.getElementById("video-player");
+  if (existingPlayer) {
+    existingPlayer.remove();
+  }
+
+  // Create video player container
+  const videoPlayer = document.createElement("div");
+  videoPlayer.id = "video-player";
+  videoPlayer.style.position = "fixed";
+  videoPlayer.style.top = "50%";
+  videoPlayer.style.left = "50%";
+  videoPlayer.style.transform = "translate(-50%, -50%)";
+  videoPlayer.style.zIndex = "1000";
+  videoPlayer.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  videoPlayer.style.padding = "20px";
+  videoPlayer.style.borderRadius = "10px";
+  videoPlayer.style.width = "50%";
+
+  // Create video element
+  const video = document.createElement("video");
+  video.src = videoPath;
+  video.controls = true;
+  video.style.width = "100%";
+
+  // Close button
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "X";
+  closeButton.style.position = "absolute";
+  closeButton.style.top = "10px";
+  closeButton.style.right = "10px";
+  closeButton.style.backgroundColor = "red";
+  closeButton.style.color = "white";
+  closeButton.style.border = "none";
+  closeButton.style.padding = "10px";
+  closeButton.style.cursor = "pointer";
+  closeButton.addEventListener("click", () => videoPlayer.remove());
+
+  // Auto-close when video ends
+  video.addEventListener("ended", () => videoPlayer.remove());
+
+  videoPlayer.appendChild(video);
+  videoPlayer.appendChild(closeButton);
+  document.body.appendChild(videoPlayer);
+}
+
+// Load genres and video files dynamically
+function loadGenres(container, folderPath, type = "tracks") {
+  // Clear existing content
+  container.innerHTML = "";
+
+  // Genre names
+  const genres = [
+    "arabic",
+    "chinese",
+    "dancehall, Ragga, Riddims",
+    "East African",
+    "gospel",
+    "international",
+    "lingala & rhumba",
+    "traditional",
+    "west & south Africa",
+    "X-mass",
+  ];
+
+  genres.forEach((genre) => {
+    // Create genre item
+    const genreItem = document.createElement("div");
+    genreItem.textContent = genre;
+    genreItem.style.cursor = "pointer";
+    genreItem.style.padding = "10px";
+    genreItem.style.borderBottom = "1px solid white";
+
+    // Handle genre click
+    genreItem.addEventListener("click", () => {
+      if (type === "tracks") {
+        // Display dummy song list
+        const songList = document.createElement("ul");
+        songList.style.maxHeight = "300px";
+        songList.style.overflowY = "scroll";
+
+        for (let i = 1; i <= 15; i++) {
+          const songItem = document.createElement("li");
+          songItem.textContent = `Track ${i} - Artist ${i}`;
+          songList.appendChild(songItem);
+        }
+
+        container.innerHTML = ""; // Clear container and add songs
+        container.appendChild(songList);
+      } else if (type === "videos") {
+        // Display video list
+        fetch(`${folderPath}/${genre}`)
+          .then((response) => response.json())
+          .then((videoFiles) => {
+            container.innerHTML = ""; // Clear container
+
+            videoFiles.forEach((file) => {
+              const videoItem = document.createElement("div");
+              videoItem.textContent = file.replace(/\.[^/.]+$/, ""); // Remove file extension
+              videoItem.style.cursor = "pointer";
+              videoItem.style.padding = "5px";
+              videoItem.addEventListener("click", () =>
+                createVideoPlayer(`${folderPath}/${genre}/${file}`)
+              );
+              container.appendChild(videoItem);
+            });
+          })
+          .catch(() =>
+            console.error(`Could not load videos from ${folderPath}/${genre}`)
+          );
+      }
+    });
+
+    container.appendChild(genreItem);
+  });
+}
+
+// Handle navigation between pages
+document.querySelectorAll(".center-buttons button").forEach((button) => {
+  button.addEventListener("click", () => {
+    const id = button.id;
+
+    // Hide the home page
+    document.getElementById("home-page").style.display = "none";
+
+    // Show respective content page
+    document.getElementById(`${id}-page`).style.display = "block";
+
+    if (id === "out-list" || id === "saxs") {
+      const container = document.querySelector(`#${id}-page .tracks`);
+      loadGenres(container, "ngomaz", "tracks");
+    } else if (id === "mixxez") {
+      const container = document.querySelector(`#${id}-page .tracks`);
+      loadGenres(container, "ngomaz", "videos");
+    }
+  });
+});
+
+// Back button functionality
+function goBack() {
+  document.querySelectorAll(".content-page").forEach((page) => {
+    page.style.display = "none";
+  });
+  document.getElementById("home-page").style.display = "block";
+}
+
 const API_URL = "https://nodayz.onrender.com/requests"; // Replace with your deployed backend URL
 
 // DOM Elements
