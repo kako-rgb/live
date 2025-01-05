@@ -140,9 +140,89 @@ function addLongPressListener(element, requestId) {
 setInterval(fetchRequests, 60000);
 
 
-// Helper function to create video player
-function createVideoPlayer(videoPath) {
-  // Check if a player already exists and remove it
+// Function to display content dynamically when a genre is clicked
+function loadGenreContent(container, genreName, type) {
+  // Clear existing content
+  container.innerHTML = "";
+
+  // Define folder path dynamically (modify if needed)
+  const folderPath = `ngomaz/${genreName.toLowerCase().replace(/\s|&|,/g, "_")}`;
+
+  if (type === "video") {
+    // Fetch video files (replace with a backend API for dynamic data if needed)
+    fetch(`${folderPath}/videos.json`)
+      .then((response) => response.json())
+      .then((videos) => {
+        if (videos.length === 0) {
+          container.innerHTML = "<p>No videos available in this genre.</p>";
+          return;
+        }
+
+        videos.forEach((video) => {
+          const videoItem = document.createElement("div");
+          videoItem.textContent = video.replace(/\.[^/.]+$/, ""); // Remove file extension
+          videoItem.style.cursor = "pointer";
+          videoItem.style.padding = "5px";
+          videoItem.style.borderBottom = "1px solid #ccc";
+
+          videoItem.addEventListener("click", () => {
+            playVideo(`${folderPath}/${video}`);
+          });
+
+          container.appendChild(videoItem);
+        });
+      })
+      .catch(() => {
+        container.innerHTML = `<p>Error loading videos from ${folderPath}</p>`;
+      });
+  } else {
+    // Fetch tracks (simulate with dummy data if no backend)
+    const trackList = [
+      `Song 1 - Artist A`,
+      `Song 2 - Artist B`,
+      `Song 3 - Artist C`,
+      `Song 4 - Artist D`,
+    ]; // Replace this with a dynamic fetch if needed
+
+    const ul = document.createElement("ul");
+    ul.style.maxHeight = "300px";
+    ul.style.overflowY = "auto";
+
+    trackList.forEach((track) => {
+      const li = document.createElement("li");
+      li.textContent = track;
+      li.style.padding = "5px";
+      ul.appendChild(li);
+    });
+
+    container.appendChild(ul);
+  }
+}
+
+// Function to handle navigation and display the correct genre content
+function setupGenreNavigation() {
+  const genres = document.querySelectorAll(".genres ul li");
+  const tracksContainer = document.querySelector(".tracks");
+  const videoButton = document.querySelector(".video-list-btn");
+
+  genres.forEach((genre) => {
+    genre.addEventListener("click", () => {
+      const genreName = genre.textContent;
+
+      // Load track list by default
+      loadGenreContent(tracksContainer, genreName, "track");
+
+      // Update the video button functionality
+      videoButton.addEventListener("click", () => {
+        loadGenreContent(tracksContainer, genreName, "video");
+      });
+    });
+  });
+}
+
+// Function to play video in a popup player
+function playVideo(videoPath) {
+  // Remove existing video player if present
   const existingPlayer = document.getElementById("video-player");
   if (existingPlayer) {
     existingPlayer.remove();
@@ -155,16 +235,16 @@ function createVideoPlayer(videoPath) {
   videoPlayer.style.top = "50%";
   videoPlayer.style.left = "50%";
   videoPlayer.style.transform = "translate(-50%, -50%)";
-  videoPlayer.style.zIndex = "1000";
-  videoPlayer.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  videoPlayer.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
   videoPlayer.style.padding = "20px";
   videoPlayer.style.borderRadius = "10px";
-  videoPlayer.style.width = "50%";
+  videoPlayer.style.zIndex = "1000";
 
-  // Create video element
+  // Video element
   const video = document.createElement("video");
   video.src = videoPath;
   video.controls = true;
+  video.autoplay = true;
   video.style.width = "100%";
 
   // Close button
@@ -178,107 +258,19 @@ function createVideoPlayer(videoPath) {
   closeButton.style.border = "none";
   closeButton.style.padding = "10px";
   closeButton.style.cursor = "pointer";
-  closeButton.addEventListener("click", () => videoPlayer.remove());
+  closeButton.addEventListener("click", () => {
+    videoPlayer.remove();
+  });
 
   // Auto-close when video ends
-  video.addEventListener("ended", () => videoPlayer.remove());
+  video.addEventListener("ended", () => {
+    videoPlayer.remove();
+  });
 
   videoPlayer.appendChild(video);
   videoPlayer.appendChild(closeButton);
   document.body.appendChild(videoPlayer);
 }
-
-// Load genres and video files dynamically
-function loadGenres(container, folderPath, type = "tracks") {
-  // Clear existing content
-  container.innerHTML = "";
-
-  // Genre names
-  const genres = [
-    "arabic",
-    "chinese",
-    "dancehall, Ragga, Riddims",
-    "East African",
-    "gospel",
-    "international",
-    "lingala & rhumba",
-    "traditional",
-    "west & south Africa",
-    "X-mass",
-  ];
-
-  genres.forEach((genre) => {
-    // Create genre item
-    const genreItem = document.createElement("div");
-    genreItem.textContent = genre;
-    genreItem.style.cursor = "pointer";
-    genreItem.style.padding = "10px";
-    genreItem.style.borderBottom = "1px solid white";
-
-    // Handle genre click
-    genreItem.addEventListener("click", () => {
-      if (type === "tracks") {
-        // Display dummy song list
-        const songList = document.createElement("ul");
-        songList.style.maxHeight = "300px";
-        songList.style.overflowY = "scroll";
-
-        for (let i = 1; i <= 15; i++) {
-          const songItem = document.createElement("li");
-          songItem.textContent = `Track ${i} - Artist ${i}`;
-          songList.appendChild(songItem);
-        }
-
-        container.innerHTML = ""; // Clear container and add songs
-        container.appendChild(songList);
-      } else if (type === "videos") {
-        // Display video list
-        fetch(`${folderPath}/${genre}`)
-          .then((response) => response.json())
-          .then((videoFiles) => {
-            container.innerHTML = ""; // Clear container
-
-            videoFiles.forEach((file) => {
-              const videoItem = document.createElement("div");
-              videoItem.textContent = file.replace(/\.[^/.]+$/, ""); // Remove file extension
-              videoItem.style.cursor = "pointer";
-              videoItem.style.padding = "5px";
-              videoItem.addEventListener("click", () =>
-                createVideoPlayer(`${folderPath}/${genre}/${file}`)
-              );
-              container.appendChild(videoItem);
-            });
-          })
-          .catch(() =>
-            console.error(`Could not load videos from ${folderPath}/${genre}`)
-          );
-      }
-    });
-
-    container.appendChild(genreItem);
-  });
-}
-
-// Handle navigation between pages
-document.querySelectorAll(".center-buttons button").forEach((button) => {
-  button.addEventListener("click", () => {
-    const id = button.id;
-
-    // Hide the home page
-    document.getElementById("home-page").style.display = "none";
-
-    // Show respective content page
-    document.getElementById(`${id}-page`).style.display = "block";
-
-    if (id === "out-list" || id === "saxs") {
-      const container = document.querySelector(`#${id}-page .tracks`);
-      loadGenres(container, "ngomaz", "tracks");
-    } else if (id === "mixxez") {
-      const container = document.querySelector(`#${id}-page .tracks`);
-      loadGenres(container, "ngomaz", "videos");
-    }
-  });
-});
 
 // Back button functionality
 function goBack() {
@@ -288,3 +280,28 @@ function goBack() {
   document.getElementById("home-page").style.display = "block";
 }
 
+// Setup page navigation
+function setupPageNavigation() {
+  const buttons = document.querySelectorAll(".center-buttons button");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.id;
+      document.getElementById("home-page").style.display = "none";
+
+      // Display the selected content page
+      const selectedPage = document.getElementById(`${id}-page`);
+      if (selectedPage) {
+        selectedPage.style.display = "block";
+      }
+    });
+  });
+}
+
+// Initialize the website functionality
+function initialize() {
+  setupPageNavigation();
+  setupGenreNavigation();
+}
+
+initialize();
