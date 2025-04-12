@@ -39,26 +39,38 @@ export function axiosHandler(token?: string) {
   
   
    
-  function request({ method ,pathData ,path }: AxiosProps){
-  
-      if (pathData){
-          config ={
-              url: path,
+  function request({ method, pathData, path }: AxiosProps) {
+      if (!HOST_API) {
+          throw new Error('HOST_API is not defined. Please check your configuration.');
+      }
+
+      // Ensure path starts with forward slash
+      const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+      
+      if (pathData) {
+          config = {
+              url: normalizedPath,
               baseURL: HOST_API,
               method: method,
               data: pathData
           }
-       } else {
-          config ={
-              url: path,
+      } else {
+          config = {
+              url: normalizedPath,
               baseURL: HOST_API,
               method: method    
           } 
-       }
-  
-      const response: Promise<AxiosResponse> = axiosInst(config)
-      return response
-   }
+      }
+
+      // Ensure baseURL is properly formatted
+      const baseURL = typeof HOST_API === 'string' && HOST_API.trim();
+      if (baseURL && !baseURL.startsWith('http://') && !baseURL.startsWith('https://')) {
+          config.baseURL = `https://${baseURL}`;
+      }
+
+      const response: Promise<AxiosResponse> = axiosInst(config);
+      return response;
+  }
     
     return request
 }
@@ -95,26 +107,38 @@ export default function useAxios(token?: string) {
     });
     
      
-    function request({ method ,pathData ,path }: AxiosProps){
-    
-        if (pathData){
-            config ={
-                url: path,
+    function request({ method, pathData, path }: AxiosProps) {
+        if (!HOST_API) {
+            throw new Error('HOST_API is not defined. Please check your configuration.');
+        }
+
+        // Ensure path starts with forward slash
+        const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+        
+        if (pathData) {
+            config = {
+                url: normalizedPath,
                 baseURL: HOST_API,
                 method: method,
                 data: pathData
             }
-         } else {
-            config ={
-                url: path,
+        } else {
+            config = {
+                url: normalizedPath,
                 baseURL: HOST_API,
                 method: method    
             } 
-         }
-    
+        }
+
+        // Ensure baseURL is properly formatted
+        const baseURL = typeof HOST_API === 'string' && HOST_API.trim();
+        if (baseURL && !baseURL.startsWith('http://') && !baseURL.startsWith('https://')) {
+            config.baseURL = `https://${baseURL}`;
+        }
+
         const response: Promise<AxiosResponse> = axiosInst(config);
-        return response
-     }
+        return response;
+    }
       
     return request
 }

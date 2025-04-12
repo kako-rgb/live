@@ -1,28 +1,29 @@
 'use client'
 
 import ContainerOverlay from '@/components/container-overlay'
-import { VENDORS } from '@/utils/data'
-import { Stack, Typography } from '@mui/material'
+import { Stack } from '@mui/material'
 import React from 'react'
 import VendorCard from '../components/vendor-card'
-import { STORE } from '@/utils/types'
+import SectionTitle from '@/components/section-title'
 
-interface TOP_RATED_VENDORS_PROPS {
-  stores: STORE[]
+interface TopRatedVendorsProps {
+  stores?: any[];
 }
 
-const TopRatedVendors = ({ stores }: TOP_RATED_VENDORS_PROPS) => {
+export default function TopRatedVendors({ stores = [] }: TopRatedVendorsProps) {
   return (
-    <ContainerOverlay paddingVertical={5}>
-        <Stack gap={5}>
-            <Typography variant='h5' fontWeight={600}>Top-Rated Vendors</Typography>
-
-            <div className='grid gap-8 md:grid-cols-3'>
-                {stores.map((each, index) => <VendorCard key={index} vendor={each} />)}
-            </div>
-        </Stack>
+    <ContainerOverlay>
+      <Stack spacing={4}>
+        <SectionTitle
+          title="Top Rated Vendors"
+          subtitle="Lorem ipsum dolor sit amet consectetur adipiscing elit"
+        />
+        <div className='grid gap-8 md:grid-cols-3'>
+          {stores?.map((each, index) => (
+            <VendorCard key={index} vendor={each} />
+          ))}
+        </div>
+      </Stack>
     </ContainerOverlay>
-  )
+  );
 }
-
-export default TopRatedVendors

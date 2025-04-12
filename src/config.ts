@@ -37,7 +37,7 @@ export const FONT_FAMILY = Inter({
     display: 'swap'
 });
 
-export const HOST_API = process.env.NEXT_PUBLIC_HOST_API;
+export const HOST_API = process.env.NEXT_PUBLIC_API_URL || 'https://live-1xx5cinbd-kako-rgbs-projects.vercel.app';
 
 export const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
 
